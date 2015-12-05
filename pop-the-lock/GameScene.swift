@@ -9,34 +9,70 @@
 import SpriteKit
 
 class GameScene: SKScene {
+    
+    var Circle = SKSpriteNode()
+    var Person = SKSpriteNode()
+    
+    var Path = UIBezierPath()
+    
+    var gameStarted = Bool()
+    var movingClockwise = Bool()
+    
     override func didMoveToView(view: SKView) {
-        /* Setup your scene here */
-        let myLabel = SKLabelNode(fontNamed:"Chalkduster")
-        myLabel.text = "Hello, World!";
-        myLabel.fontSize = 45;
-        myLabel.position = CGPoint(x:CGRectGetMidX(self.frame), y:CGRectGetMidY(self.frame));
+        Circle = SKSpriteNode(imageNamed: "circle")
+        Circle.size = CGSize(width: 300, height: 300)
+        Circle.position = CGPoint(x: CGRectGetMidX(self.frame), y: CGRectGetMidY(self.frame))
+        self.addChild(Circle)
         
-        self.addChild(myLabel)
+        Person = SKSpriteNode(imageNamed: "person")
+        Person.size = CGSize(width: 40, height: 7)
+        Person.position = CGPoint(x: self.frame.width/2, y: self.frame.height/2 + 122)
+        Person.zRotation = 3.14/2
+        self.addChild(Person)
+        
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-       /* Called when a touch begins */
-        
-        for touch in touches {
-            let location = touch.locationInNode(self)
+        if gameStarted == false {
+            moveClockwise(); movingClockwise = true
+            gameStarted = true
             
-            let sprite = SKSpriteNode(imageNamed:"Spaceship")
+        } else if gameStarted == true {
+            if movingClockwise == true {
+                moveCounterClockwise(); movingClockwise = false
+                
+                
+            } else if movingClockwise == false {
+                moveClockwise()
+                movingClockwise = true
+            }
             
-            sprite.xScale = 0.5
-            sprite.yScale = 0.5
-            sprite.position = location
-            
-            let action = SKAction.rotateByAngle(CGFloat(M_PI), duration:1)
-            
-            sprite.runAction(SKAction.repeatActionForever(action))
-            
-            self.addChild(sprite)
         }
+        
+    }
+    
+    func moveClockwise() {
+        let dx = Person.position.x - self.frame.width/2
+        let dy = Person.position.y - self.frame.height/2
+        
+        let radian = atan2(dy, dx)
+        
+        Path = UIBezierPath(arcCenter: CGPoint(x: self.frame.width/2, y: self.frame.height/2), radius: 122, startAngle: radian, endAngle: radian + CGFloat(M_PI * 4), clockwise: true)
+        
+        let follow = SKAction.followPath(Path.CGPath, asOffset: false, orientToPath: true, speed: 200)
+        Person.runAction(SKAction.repeatActionForever(follow).reversedAction())
+    }
+    
+    func moveCounterClockwise() {
+        let dx = Person.position.x - self.frame.width/2
+        let dy = Person.position.y - self.frame.height/2
+        
+        let radian = atan2(dy, dx)
+        
+        Path = UIBezierPath(arcCenter: CGPoint(x: self.frame.width/2, y: self.frame.height/2), radius: 122, startAngle: radian, endAngle: radian + CGFloat(M_PI * 4), clockwise: true)
+        
+        let follow = SKAction.followPath(Path.CGPath, asOffset: false, orientToPath: true, speed: 200)
+        Person.runAction(SKAction.repeatActionForever(follow))
     }
    
     override func update(currentTime: CFTimeInterval) {
